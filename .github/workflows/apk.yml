@@ -1,0 +1,134 @@
+name: Build Android APK
+on:
+  push:
+    branches: [apk-build]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OUT: ${{ github.workspace }}/ci-out
+      LOGDIR: ${{ github.workspace }}/ci-logs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prepare dirs
+        run: mkdir -p "$OUT" "$LOGDIR"
+
+      - name: Environment diagnostics
+        run: |
+          {
+            echo "=== env ==="
+            echo "started: $(date -u)"
+            echo "java: $(java -version 2>&1 | head -1)"
+            echo "node: $(node -v) npm: $(npm -v)"
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            echo "platforms: $(ls $ANDROID_HOME/platforms 2>/dev/null | tr '\n' ' ')"
+            echo "build-tools: $(ls $ANDROID_HOME/build-tools 2>/dev/null | tr '\n' ' ')"
+            echo "net dl.google: $(curl -sS -m 15 -o /dev/null -w '%{http_code}' https://dl.google.com/ 2>&1)"
+            echo "net maven: $(curl -sS -m 15 -o /dev/null -w '%{http_code}' https://repo1.maven.org/maven2/ 2>&1)"
+          } > "$OUT/diagnostics.txt" 2>&1
+
+      - name: Install dependencies
+        id: deps
+        run: npm install --no-audit --no-fund > "$LOGDIR/npm-install.log" 2>&1
+        continue-on-error: true
+
+      - name: Build web app
+        id: web
+        run: npm run build > "$LOGDIR/web-build.log" 2>&1
+        continue-on-error: true
+
+      - name: Add Android platform
+        id: capadd
+        run: npx --yes cap add android > "$LOGDIR/cap-add.log" 2>&1
+        continue-on-error: true
+
+      - name: App icon
+        run: python3 assets/android/copy_icons.py android > "$LOGDIR/icons.log" 2>&1
+        continue-on-error: true
+
+      - name: Capacitor sync
+        id: capsync
+        run: npx --yes cap sync android > "$LOGDIR/cap-sync.log" 2>&1
+        continue-on-error: true
+
+      - name: Android SDK packages
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" > "$LOGDIR/sdkmanager.log" 2>&1 || true
+        continue-on-error: true
+
+      - name: Build debug APK
+        id: gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon -Dorg.gradle.jvmargs="-Xmx3g" > "$LOGDIR/gradle.log" 2>&1
+          echo "GRADLE_EXIT=$?" >> "$OUT/diagnostics.txt"
+        continue-on-error: true
+
+      - name: Fix + retry with Java 17
+        id: gradle17
+        if: always()
+        run: |
+          if [ ! -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
+            export JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
+            export PATH="$JAVA_HOME/bin:$PATH"
+            cd android
+            ./gradlew assembleDebug --no-daemon > "$LOGDIR/gradle17.log" 2>&1
+            echo "GRADLE17_EXIT=$?" >> "$OUT/diagnostics.txt"
+          fi
+        continue-on-error: true
+
+      - name: Report
+        if: always()
+        run: |
+          {
+            echo ""
+            echo "=== step results ==="
+            echo "deps=${{ steps.deps.outcome }} web=${{ steps.web.outcome }} capadd=${{ steps.capadd.outcome }} capsync=${{ steps.capsync.outcome }} gradle=${{ steps.gradle.outcome }}"
+            echo "=== apks ==="
+            find . -name "*.apk" -not -path "*/node_modules/*" 2>/dev/null
+            echo "=== dist ==="
+            ls web/dist 2>/dev/null | head -20
+            echo "=== gradle log tail ==="
+            tail -60 "$LOGDIR/gradle.log" 2>/dev/null || echo "(no gradle log)"
+            echo "=== web build log tail ==="
+            tail -30 "$LOGDIR/web-build.log" 2>/dev/null || echo "(no web log)"
+            echo "=== cap sync log tail ==="
+            tail -20 "$LOGDIR/cap-sync.log" 2>/dev/null || echo "(none)"
+          } >> "$OUT/diagnostics.txt" 2>&1
+
+      - name: Publish results to branch 'apk'
+        if: always()
+        run: |
+          set -e
+          cp "$LOGDIR"/*.log "$OUT"/ 2>/dev/null || true
+          APK=$(find . -name "app-debug.apk" 2>/dev/null | grep -v node_modules | head -1 || true)
+          if [ -n "$APK" ] && [ -f "$APK" ]; then cp "$APK" "$OUT/TradeVault.apk"; fi
+          cd "$OUT"
+          ls -la
+          git init -q -b apk
+          git -c user.email=bot@arena.ai -c user.name="Arena Bot" add -A
+          git -c user.email=bot@arena.ai -c user.name="Arena Bot" commit -q -m "build $GITHUB_RUN_NUMBER - $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git push -q --force origin apk
+          echo "published"
