@@ -3,6 +3,7 @@ import { useApp } from '../state/AppContext.jsx';
 import { Card, Field, Spinner } from '../components/ui.jsx';
 import { TrendingUp, NotebookPen, Cloud, ShieldCheck, Smartphone } from 'lucide-react';
 import { api } from '../lib/api.js';
+import { useEffect, useState as useCompState } from 'react';
 
 export default function Login() {
   const { login, signup, continueOffline, serverUrl } = useApp();
@@ -12,6 +13,27 @@ export default function Login() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [serverDown, setServerDown] = useState(null);
+
+  // Can we reach the sync server? If not, push the user to offline mode instead of a dead sign-in.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!serverUrl) {
+        if (alive) setServerDown(true);
+        return;
+      }
+      try {
+        await api.health();
+        if (alive) setServerDown(false);
+      } catch {
+        if (alive) setServerDown(true);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [serverUrl]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -21,7 +43,13 @@ export default function Login() {
       if (mode === 'login') await login(email.trim(), password);
       else await signup(email.trim(), password, name.trim());
     } catch (err) {
-      setError(err.message || 'Something went wrong');
+      const net = /failed to fetch|network|load failed|timed out/i.test(err.message || '');
+      setError(
+        net
+          ? 'Cannot reach the sync server right now. Use "Continue offline" below — the full app works without it.'
+          : err.message || 'Something went wrong'
+      );
+      if (net) setServerDown(true);
     } finally {
       setBusy(false);
     }
@@ -105,6 +133,13 @@ export default function Login() {
               ))}
             </div>
 
+            {serverDown && (
+              <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-[12px] leading-relaxed text-amber-200">
+                <b>Sync server is not reachable.</b> The app still works completely — your trades and journal are
+                saved on this device. You can sign in later from <b>Settings → Server URL</b> to sync to the cloud.
+              </div>
+            )}
+
             <form onSubmit={submit} className="space-y-3">
               {mode === 'signup' && (
                 <Field label="Your name">
@@ -142,6 +177,11 @@ export default function Login() {
               <button className="btn-primary w-full" disabled={busy}>
                 {busy ? <Spinner size={16} /> : mode === 'login' ? 'Sign in' : 'Create account'}
               </button>
+              {serverDown && (
+                <p className="text-center text-[11px] text-slate-600">
+                  Sign-in needs the server. Offline mode below needs nothing.
+                </p>
+              )}
             </form>
 
             <div className="my-4 flex items-center gap-3">
@@ -150,8 +190,11 @@ export default function Login() {
               <div className="h-px flex-1 bg-ink-700" />
             </div>
 
-            <button onClick={continueOffline} className="btn-ghost w-full">
-              <Smartphone size={16} /> Use on this device only
+            <button
+              onClick={continueOffline}
+              className={serverDown ? 'btn-success w-full' : 'btn-ghost w-full'}
+            >
+              <Smartphone size={16} /> {serverDown ? 'Continue offline — full app' : 'Use on this device only'}
             </button>
             <p className="mt-2 text-center text-[11px] leading-relaxed text-slate-600">
               No account needed. Everything is saved on this device. You can sign in later from Settings to sync to the

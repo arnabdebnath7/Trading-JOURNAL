@@ -11,5 +11,3 @@ web/public/icons/*.png
 /android/.gradle/
 /android/local.properties
 /android/app/release/
-*.aab
-*.apk
