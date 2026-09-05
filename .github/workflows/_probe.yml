@@ -1,0 +1,7 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "ANDROID_HOME=$ANDROID_HOME"; ls $ANDROID_HOME 2>/dev/null; java -version 2>&1 | head -2
