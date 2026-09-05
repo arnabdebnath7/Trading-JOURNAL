@@ -1,6 +1,5 @@
-import type { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
+/** @type {import('@capacitor/cli').CapacitorConfig} */
+const config = {
   appId: 'com.tradevault.app',
   appName: 'TradeVault',
   webDir: 'web/dist',
@@ -8,8 +7,7 @@ const config: CapacitorConfig = {
   loggingEnabled: false,
   android: {
     allowMixedContent: true,
-    captureInput: true,
-    webContentsDebuggingEnabled: false
+    captureInput: true
   },
   server: {
     // The hosted API. Override at runtime from Settings > Server URL inside the app.
