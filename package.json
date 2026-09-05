@@ -15,7 +15,9 @@
     "start": "npm -w server start",
     "cap:sync": "npm -w web run build && npx cap sync android",
     "cap:add:android": "npx cap add android",
-    "cap:open": "npx cap open android"
+    "cap:open": "npx cap open android",
+    "test": "node scripts/smoke.mjs",
+    "test:seeded": "SEED=1 node scripts/smoke.mjs"
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.1",
@@ -26,7 +28,9 @@
     "@capacitor/keyboard": "^8.0.5",
     "@capacitor/network": "^8.0.1",
     "@capacitor/status-bar": "^8.0.3",
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^30.0.1"
   },
   "engines": {
     "node": ">=18"

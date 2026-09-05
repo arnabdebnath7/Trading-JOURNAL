@@ -66,6 +66,13 @@ npm run dev       # web on :5173 (proxies /api) + API on :3001
 
 The server keeps its database at `server/data/tradevault.db`.
 
+Run the headless smoke test (renders every screen in a fake browser and fails on any runtime error):
+
+```bash
+npm test           # fresh install -> sign-in screen
+npm run test:seeded  # signed in with 25 sample trades -> dashboard, trades, analytics, journal, settings
+```
+
 ---
 
 ## ☁️ Cloud sync — deploying the server
