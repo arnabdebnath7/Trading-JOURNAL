@@ -117,6 +117,20 @@ jobs:
             tail -20 "$LOGDIR/cap-sync.log" 2>/dev/null || echo "(none)"
           } >> "$OUT/diagnostics.txt" 2>&1
 
+
+      - name: Publish GitHub Release with the APK
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd "$OUT"
+          if [ ! -f TradeVault.apk ]; then echo "no apk to publish"; exit 0; fi
+          gh release delete v1.0.0 --repo "${{ github.repository }}" --yes > /dev/null 2>&1 || true
+          gh release create v1.0.0 TradeVault.apk \
+            --repo "${{ github.repository }}" \
+            --title "TradeVault v1.0 - Trading + Life Journal (Android APK)" \
+            --notes "Android APK (4.6 MB, Android 7.0+). Download TradeVault.apk below, allow \"Install unknown apps\" for your browser, then tap the file to install. On first launch tap **Continue offline** - the whole app works without an account or internet. Trading journal with automatic Indian charges (STT/GST/stamp duty), P&L, R-multiple, analytics, plus a daily life journal with mood vs P&L. See the repository README for source, web app and setup."
+
       - name: Publish results to branch 'apk'
         if: always()
         run: |
