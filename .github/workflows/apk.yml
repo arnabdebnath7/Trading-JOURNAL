@@ -1,0 +1,113 @@
+name: Build Android APK
+on:
+  push:
+    branches: [apk-build]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DIAG: ${{ github.workspace }}/diagnostics.txt
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Environment diagnostics
+        run: |
+          {
+            echo "=== runner ==="; uname -a
+            echo "=== job started (UTC) ==="; date -u
+            echo "=== java ==="; java -version 2>&1 | head -3 || echo "NO JAVA"
+            echo "JAVA_HOME=$JAVA_HOME"
+            echo "=== android sdk ==="
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+            ls "$ANDROID_HOME" 2>/dev/null | tr '\n' ' '; echo
+            echo "platforms: $(ls $ANDROID_HOME/platforms 2>/dev/null | tr '\n' ' ')"
+            echo "build-tools: $(ls $ANDROID_HOME/build-tools 2>/dev/null | tr '\n' ' ')"
+            echo "cmdline-tools: $(ls $ANDROID_HOME/cmdline-tools 2>/dev/null | tr '\n' ' ')"
+            echo "=== network ==="
+            echo "dl.google.com: $(curl -sS -m 15 -o /dev/null -w '%{http_code}' https://dl.google.com/ 2>&1)"
+            echo "repo1.maven.org: $(curl -sS -m 15 -o /dev/null -w '%{http_code}' https://repo1.maven.org/maven2/ 2>&1)"
+            echo "services.gradle.org: $(curl -sS -m 15 -o /dev/null -w '%{http_code}' https://services.gradle.org/distributions/ 2>&1)"
+            echo "npmjs: $(curl -sS -m 15 -o /dev/null -w '%{http_code}' https://registry.npmjs.org/ 2>&1)"
+          } > "$DIAG" 2>&1
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund 2>&1 | tail -5
+        continue-on-error: true
+
+      - name: Build web app
+        id: web
+        run: npm run build 2>&1 | tail -25
+        continue-on-error: true
+
+      - name: Add Android platform
+        id: capadd
+        run: npx --yes cap add android 2>&1 | tail -20
+        continue-on-error: true
+
+      - name: Capacitor sync
+        id: capsync
+        run: npx --yes cap sync android 2>&1 | tail -20
+        continue-on-error: true
+
+      - name: Install Android SDK packages
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0" 2>&1 | tail -5 || true
+        continue-on-error: true
+
+      - name: Build debug APK
+        id: gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tail -60
+        continue-on-error: true
+
+      - name: Report
+        if: always()
+        run: |
+          echo "" >> "$DIAG"
+          echo "=== step results ===" >> "$DIAG"
+          echo "web=${{ steps.web.outcome }} capadd=${{ steps.capadd.outcome }} capsync=${{ steps.capsync.outcome }} gradle=${{ steps.gradle.outcome }}" >> "$DIAG"
+          echo "=== apks found ===" >> "$DIAG"
+          find . -name "*.apk" -not -path "*/node_modules/*" 2>/dev/null >> "$DIAG" || true
+
+      - name: Publish results to branch 'apk'
+        if: always()
+        run: |
+          set -e
+          mkdir -p /tmp/out
+          cp "$DIAG" /tmp/out/diagnostics.txt || true
+          APK=$(find . -name "app-debug.apk" -o -name "*.apk" 2>/dev/null | grep -v node_modules | head -1 || true)
+          if [ -n "$APK" ] && [ -f "$APK" ]; then
+            cp "$APK" /tmp/out/TradeVault.apk
+            ls -la /tmp/out
+          fi
+          cd /tmp/out
+          git init -q -b apk
+          git -c user.email=bot@arena.ai -c user.name="Arena Bot" add -A
+          git -c user.email=bot@arena.ai -c user.name="Arena Bot" commit -q -m "build $GITHUB_RUN_NUMBER - $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git push -q --force origin apk
+          echo "pushed results"

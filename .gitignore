@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dev-dist/
+.DS_Store
+*.log
+.env
+.env.local
+server/data/
+web/public/icons/*.png
+/android/app/build/
+/android/.gradle/
+/android/local.properties
+/android/app/release/
+*.aab
+*.apk
