@@ -56,8 +56,8 @@ input[type='number'] {
       focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25;
   }
   .select {
-    @apply input appearance-none bg-[url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238aa0b8'><path d='M4 6l4 4 4-4z'/></svg>")]
-      bg-no-repeat pr-9;
+    @apply input appearance-none bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238aa0b8'><path d='M4 6l4 4 4-4z'/></svg>");
     background-position: right 0.75rem center;
   }
   .btn {

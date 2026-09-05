@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AppProvider } from './state/AppContext.jsx';
 import './index.css';
+import { initNative } from './lib/native.js';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -14,6 +15,8 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+initNative();
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
