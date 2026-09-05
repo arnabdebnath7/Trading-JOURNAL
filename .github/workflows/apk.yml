@@ -123,8 +123,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd "$OUT"
-          if [ ! -f TradeVault.apk ]; then echo "no apk to publish"; exit 0; fi
+          APK=$(find "$GITHUB_WORKSPACE/android" -name "app-debug.apk" 2>/dev/null | head -1 || true)
+          if [ -z "$APK" ] || [ ! -f "$APK" ]; then echo "no apk to publish"; exit 0; fi
+          cp "$APK" "$GITHUB_WORKSPACE/TradeVault.apk"
+          cd "$GITHUB_WORKSPACE"
           gh release delete v1.0.0 --repo "${{ github.repository }}" --yes > /dev/null 2>&1 || true
           gh release create v1.0.0 TradeVault.apk \
             --repo "${{ github.repository }}" \
