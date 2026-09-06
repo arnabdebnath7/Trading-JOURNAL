@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTrades } from '../lib/hooks.js';
 import { filterTrades, summary } from '../lib/metrics.js';
 import { Card, Chip, Money, EmptyState, Field, Select, Spinner, Confirm } from '../components/ui.jsx';
+import ImportModal from '../components/ImportModal.jsx';
 import { saveRow, softDelete } from '../lib/db.js';
 import { scheduleSync } from '../lib/sync.js';
-import { BookOpen, Search, SlidersHorizontal, Trash2, Copy, Pencil, Download } from 'lucide-react';
+import { useApp } from '../state/AppContext.jsx';
+import { BookOpen, Search, SlidersHorizontal, Trash2, Copy, Pencil, Download, Upload } from 'lucide-react';
 import { INSTRUMENTS } from '../../../shared/tradeMath.js';
 
 const INSTRUMENT_OPTS = Object.entries(INSTRUMENTS).map(([v, o]) => ({ value: v, label: o.label }));
@@ -13,9 +15,11 @@ const INSTRUMENT_OPTS = Object.entries(INSTRUMENTS).map(([v, o]) => ({ value: v,
 export default function Trades() {
   const trades = useTrades();
   const navigate = useNavigate();
+  const { settings } = useApp();
   const [showFilters, setShowFilters] = useState(false);
   const [f, setF] = useState({});
   const [confirmId, setConfirmId] = useState(null);
+  const [importOpen, setImportOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
 
   const strategies = useMemo(
@@ -82,6 +86,9 @@ export default function Trades() {
           </p>
         </div>
         <div className="flex gap-2">
+          <button className="btn-ghost btn-sm" onClick={() => setImportOpen(true)}>
+            <Upload size={14} /> Import
+          </button>
           <button className="btn-ghost btn-sm" onClick={exportCsv}>
             <Download size={14} /> CSV
           </button>
@@ -197,6 +204,8 @@ export default function Trades() {
           scheduleSync();
         }}
       />
+
+      <ImportModal open={importOpen} onClose={() => setImportOpen(false)} brokerage={settings.brokerage} />
     </div>
   );
 }

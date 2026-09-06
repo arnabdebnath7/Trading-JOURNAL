@@ -314,8 +314,8 @@ export default function Settings() {
         <SectionTitle>About</SectionTitle>
         <div className="space-y-1 text-[13px] text-slate-400">
           <p>
-            <b className="text-slate-200">TradeVault</b> v1.0 — a trading journal and daily life journal for Indian
-            markets.
+            <b className="text-slate-200">TradeVault</b> v2.0 — a professional trading journal and daily life journal
+            for Indian markets, with P&amp;L calendar, auto-generated reviews, discipline score and CSV import.
           </p>
           <p className="text-[12px] text-slate-600">
             Tip: on your phone browser use “Add to Home screen” to install it like an app.

@@ -175,6 +175,7 @@ const checks =
         ['renders the dashboard', html.length > 2000],
         ['shows Net P&L KPI', /Net P&amp;L|Net P&L/i.test(html)],
         ['shows equity curve section', /Equity curve/i.test(html)],
+        ['shows discipline score on dashboard', /discipline/i.test(html)],
         ['shows a seeded symbol', /RELIANCE/i.test(html)],
         ['shows the trade log summary', /trades/i.test(html)]
       ]
@@ -206,6 +207,8 @@ if (process.env.SEED === '1') {
     ['Trades', /trade log/i],
     ['Journal', /life journal|journal streak/i],
     ['Analytics', /profit factor|expectancy/i],
+    ['Calendar', /P&amp;L Calendar|P&L Calendar/i],
+    ['Reviews', /Reviews|The verdict|Discipline score/i],
     ['More', /playbook/i],
     ['Dashboard', /equity curve/i]
   ];
