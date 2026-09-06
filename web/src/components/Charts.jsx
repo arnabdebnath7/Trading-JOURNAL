@@ -139,7 +139,7 @@ export function LineSeries({ data, dataKey = 'value', labelKey = 'label', height
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-export function CalendarHeatmap({ data, month, year, onSelect, selected }) {
+export function CalendarHeatmap({ data, month, year, onSelect, selected, today, moodByDate }) {
   const byDate = new Map(data.map((d) => [d.date, d]));
   const first = new Date(year, month, 1);
   const startPad = first.getDay();
@@ -170,6 +170,8 @@ export function CalendarHeatmap({ data, month, year, onSelect, selected }) {
           if (!iso) return <div key={`p${i}`} />;
           const d = byDate.get(iso);
           const isSel = selected === iso;
+          const isToday = today === iso;
+          const mood = moodByDate?.get(iso);
           return (
             <button
               key={iso}
@@ -177,7 +179,7 @@ export function CalendarHeatmap({ data, month, year, onSelect, selected }) {
               style={{ background: d ? colorFor(d.net) : undefined }}
               className={`relative flex aspect-square flex-col items-center justify-center rounded-lg text-[11px] font-semibold transition ${
                 d ? 'text-white' : 'bg-ink-800 text-slate-500 hover:bg-ink-700'
-              } ${isSel ? 'ring-2 ring-brand-400' : ''}`}
+              } ${isSel ? 'ring-2 ring-brand-400' : ''} ${isToday && !isSel ? 'ring-1 ring-amber-400/70' : ''}`}
               title={d ? `${iso}: ₹${d.net.toFixed(0)} (${d.trades} trades)` : iso}
             >
               <span>{Number(iso.slice(-2))}</span>
@@ -186,6 +188,7 @@ export function CalendarHeatmap({ data, month, year, onSelect, selected }) {
                   {Math.abs(d.net) >= 1000 ? `${(d.net / 1000).toFixed(1)}k` : Math.round(d.net)}
                 </span>
               )}
+              {mood && <span className="absolute right-1 top-1 text-[8px] leading-none">{mood}</span>}
             </button>
           );
         })}
@@ -195,3 +198,33 @@ export function CalendarHeatmap({ data, month, year, onSelect, selected }) {
 }
 
 export { MONTHS };
+
+/** Underwater curve — how deep below peak equity the account has been. */
+export function DrawdownChart({ data, height = 170 }) {
+  return (
+    <div style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 5, right: 6, left: -18, bottom: 0 }}>
+          <defs>
+            <linearGradient id="ddFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ef4444" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#ef4444" stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke={grid} vertical={false} />
+          <XAxis dataKey="label" stroke={axis.stroke} fontSize={axis.fontSize} tickLine={false} axisLine={false} minTickGap={24} />
+          <YAxis
+            stroke={axis.stroke}
+            fontSize={axis.fontSize}
+            tickLine={false}
+            axisLine={false}
+            width={60}
+            tickFormatter={(v) => `₹${Math.round(Math.abs(v)).toLocaleString('en-IN')}`}
+          />
+          <Tooltip content={<ChartTip />} />
+          <Area type="monotone" dataKey="drawdown" name="Drawdown" stroke="#f87171" strokeWidth={1.8} fill="url(#ddFill)" />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}

@@ -106,7 +106,9 @@ export default function Login() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-profit to-brand-600 text-sm font-black text-ink-950">
                   TV
                 </div>
-                <div className="text-base font-bold">TradeVault</div>
+                <div className="text-base font-bold">
+                  TradeVault <span className="align-middle text-[10px] font-black tracking-wide text-amber-400">v2</span>
+                </div>
               </div>
               <p className="mt-2 text-[13px] text-slate-500">
                 Trading journal + daily life journal, built for Indian markets.
