@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard.jsx';
 import Trades from './pages/Trades.jsx';
 import TradeEditor from './pages/TradeEditor.jsx';
 import Analytics from './pages/Analytics.jsx';
+import Calendar from './pages/Calendar.jsx';
+import Reports from './pages/Reports.jsx';
 import Journal from './pages/Journal.jsx';
 import JournalEntry from './pages/JournalEntry.jsx';
 import Playbook from './pages/Playbook.jsx';
@@ -39,6 +41,8 @@ export default function App() {
         <Route path="/trades/new" element={<TradeEditor />} />
         <Route path="/trades/:id" element={<TradeEditor />} />
         <Route path="/analytics" element={<Analytics />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/reports" element={<Reports />} />
         <Route path="/journal" element={<Journal />} />
         <Route path="/journal/new" element={<JournalEntry />} />
         <Route path="/journal/:date" element={<JournalEntry />} />

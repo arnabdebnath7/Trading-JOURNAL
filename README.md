@@ -11,6 +11,19 @@ support**, so the data is never lost.
 
 ---
 
+## 🆕 What's new in v2.0 — the professional layer
+
+| | |
+|---|---|
+| **📅 P&L Calendar** | A full month heatmap of daily net P&L — green/red intensity, best & worst day, green-day count, journal mood emoji on every trading day. Click a day to see its trades and life entry. |
+| **📋 Reviews** | Auto-generated weekly / monthly / quarterly report cards: verdict line, discipline score, best & worst trade, strategy & setup-grade tables, mistake costs, psychology, goals vs actual. Copy, download `.md` or share it. |
+| **🛡️ Discipline score** | One 0-100 number built from plan adherence (35%), risk management (25%), journaling consistency (25%) and habit completion (15%) — with Elite/Strong/Slipping/Rebuild grades, on the dashboard and in every review. |
+| **📥 CSV import** | Import trades from any CSV — TradeVault exports, broker P&L files or generic sheets. Smart column auto-mapping (editable), Indian date formats (`dd/mm/yyyy`, `14-Jun-2026`, ISO), ₹-comma numbers, preview with computed net P&L before you commit. |
+| **📊 Analytics v2** | Underwater drawdown curve, P&L by holding-time bucket, weekday × entry-hour session heatmap, setup-grade breakdown (A+ → D), plus quick links to Calendar & Reviews. |
+| **✨ Interface v2** | Dashboard hero with equity sparkline and discipline ring, KPI cards with sparklines, score rings, toast notifications, refined navigation with Calendar & Reviews built in. |
+
+---
+
 ## ✨ Features
 
 ### Trading journal
@@ -28,6 +41,7 @@ support**, so the data is never lost.
 | **Playbook** | Write your setups and rules; keep them next to the trade form |
 | **Watchlist** | Track ideas with target, stop and thesis |
 | **Goals & limits** | Monthly profit target, win-rate goal, max-trades limit |
+| **CSV import** | Bring your trade history in from any broker spreadsheet |
 
 ### Daily life journal
 | | |
@@ -70,7 +84,8 @@ Run the headless smoke test (renders every screen in a fake browser and fails on
 
 ```bash
 npm test           # fresh install -> sign-in screen
-npm run test:seeded  # signed in with 25 sample trades -> dashboard, trades, analytics, journal, settings
+npm run test:seeded  # signed in with 25 sample trades -> dashboard, trades, calendar, analytics, reviews, journal, settings
+npm run test:csv   # CSV import engine unit tests
 ```
 
 ---

@@ -15,9 +15,12 @@ import {
   ListChecks,
   Eye,
   HeartPulse,
-  LogOut
+  LogOut,
+  CalendarDays,
+  ClipboardList
 } from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
+import { Toaster } from './ui.jsx';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -27,7 +30,23 @@ const NAV = [
   { to: '/more', label: 'More', icon: Menu }
 ];
 
+const SIDEBAR_GROUPS = [
+  {
+    title: 'Journal',
+    items: [
+      { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+      { to: '/trades', label: 'Trades', icon: BookOpen },
+      { to: '/calendar', label: 'Calendar', icon: CalendarDays },
+      { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+      { to: '/reports', label: 'Reviews', icon: ClipboardList },
+      { to: '/journal', label: 'Life Journal', icon: NotebookPen }
+    ]
+  }
+];
+
 const MORE = [
+  { to: '/calendar', label: 'P&L Calendar', icon: CalendarDays, desc: 'Month heatmap of daily P&L' },
+  { to: '/reports', label: 'Reviews', icon: ClipboardList, desc: 'Weekly & monthly report cards' },
   { to: '/playbook', label: 'Playbook & Rules', icon: ListChecks, desc: 'Your setups and rules' },
   { to: '/watchlist', label: 'Watchlist', icon: Eye, desc: 'Stocks you are tracking' },
   { to: '/goals', label: 'Goals', icon: Target, desc: 'Monthly targets & limits' },
@@ -79,18 +98,30 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-full bg-ink-950">
+      <Toaster />
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-ink-700 bg-ink-900 md:flex">
         <div className="flex items-center gap-2.5 px-5 py-5">
           <Logo />
           <div className="leading-tight">
-            <div className="text-sm font-bold text-slate-100">TradeVault</div>
+            <div className="text-sm font-bold text-slate-100">
+              TradeVault <span className="align-middle text-[9px] font-black tracking-wide text-amber-400">v2</span>
+            </div>
             <div className="text-[10px] uppercase tracking-wider text-slate-500">Trading Journal</div>
           </div>
         </div>
         <nav className="flex-1 space-y-1 px-3">
-          {NAV.slice(0, 4).map((n) => (
-            <SideLink key={n.to} {...n} />
+          {SIDEBAR_GROUPS.map((g) => (
+            <div key={g.title}>
+              {g.title && (
+                <div className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                  {g.title}
+                </div>
+              )}
+              {g.items.map((n) => (
+                <SideLink key={n.to} {...n} />
+              ))}
+            </div>
           ))}
           <div className="px-3 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
             Manage
@@ -224,6 +255,8 @@ function titleFor(path) {
   if (path.startsWith('/trades')) return 'Trade log';
   if (path.startsWith('/journal')) return 'Life journal';
   if (path.startsWith('/analytics')) return 'Performance';
+  if (path.startsWith('/calendar')) return 'P&L calendar';
+  if (path.startsWith('/reports')) return 'Reviews';
   if (path.startsWith('/more')) return 'More';
   return 'Overview';
 }

@@ -1,8 +1,8 @@
 {
   "name": "tradevault",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "TradeVault - Trading Journal + Daily Life Journal (Web PWA + Android APK)",
+  "description": "TradeVault v2 - Professional Trading Journal + Daily Life Journal (Web PWA + Android APK)",
   "workspaces": [
     "server",
     "web"
@@ -17,7 +17,8 @@
     "cap:add:android": "npx cap add android",
     "cap:open": "npx cap open android",
     "test": "node scripts/smoke.mjs",
-    "test:seeded": "SEED=1 node scripts/smoke.mjs"
+    "test:seeded": "SEED=1 node scripts/smoke.mjs",
+    "test:csv": "node scripts/test-csv.mjs"
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.1",
