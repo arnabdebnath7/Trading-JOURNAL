@@ -117,6 +117,22 @@ jobs:
             tail -20 "$LOGDIR/cap-sync.log" 2>/dev/null || echo "(none)"
           } >> "$OUT/diagnostics.txt" 2>&1
 
+      - name: Publish GitHub Release with the APK
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APK=$(find "$GITHUB_WORKSPACE/android" -name "app-debug.apk" 2>/dev/null | head -1 || true)
+          if [ -z "$APK" ] || [ ! -f "$APK" ]; then echo "no apk to publish"; exit 0; fi
+          cp "$APK" "$GITHUB_WORKSPACE/TradeVault.apk"
+          cd "$GITHUB_WORKSPACE"
+          gh release delete v2.0.0 --repo "${{ github.repository }}" --yes > /dev/null 2>&1 || true
+          gh release create v2.0.0 TradeVault.apk \
+            --repo "${{ github.repository }}" \
+            --target "$GITHUB_SHA" \
+            --title "TradeVault v2.0 — P&L Calendar · Reviews · Discipline Score · CSV Import" \
+            --notes-file RELEASE_NOTES.md
+
       - name: Publish results to branch 'apk'
         if: always()
         run: |
