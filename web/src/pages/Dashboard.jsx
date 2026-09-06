@@ -2,10 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../state/AppContext.jsx';
 import { useTrades, useEntries, useHabits, useGoals, todayKey, MOODS } from '../lib/hooks.js';
-import { summary, equityCurve, dailyPnl, filterTrades, journalStreak, groupBy, moodVsPnl } from '../lib/metrics.js';
-import { Card, SectionTitle, Stat, Chip, Money, EmptyState, Spinner, ProgressBar } from '../components/ui.jsx';
-import { EquityChart, PnlBars, Donut } from '../components/Charts.jsx';
-import { TrendingUp, Plus, NotebookPen, Flame, ArrowRight, Target } from 'lucide-react';
+import { summary, equityCurve, dailyPnl, filterTrades, journalStreak, groupBy, moodVsPnl, disciplineScore } from '../lib/metrics.js';
+import { Card, SectionTitle, Stat, Chip, Money, EmptyState, Spinner, ProgressBar, Ring, Sparkline } from '../components/ui.jsx';
+import { EquityChart, PnlBars, Donut, CalendarHeatmap } from '../components/Charts.jsx';
+import { TrendingUp, Plus, NotebookPen, Flame, ArrowRight, Target, CalendarDays, ShieldCheck } from 'lucide-react';
 
 const RANGES = [
   { key: 'today', label: 'Today' },
@@ -58,6 +58,19 @@ export default function Dashboard() {
   const recent = useMemo(() => [...trades].sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate)).slice(0, 6), [trades]);
   const mistakes = useMemo(() => groupBy(filtered, (t) => t.mistakes).slice(0, 5), [filtered]);
   const mood = useMemo(() => moodVsPnl(daily, entries), [daily, entries]);
+  const discipline = useMemo(() => disciplineScore(trades, entries, habits), [trades, entries, habits]);
+  const spark = useMemo(() => curve.points.map((p) => p.equity), [curve]);
+  const nowD = new Date();
+  const monthDaily = useMemo(
+    () => daily.filter((d) => d.date.startsWith(`${nowD.getFullYear()}-${String(nowD.getMonth() + 1).padStart(2, '0')}`)),
+    [daily]
+  );
+  const moodMap = useMemo(() => {
+    const m = new Map();
+    for (const e of entries) if (e.mood) m.set(e.date, MOODS[e.mood]?.emoji || '•');
+    return m;
+  }, [entries]);
+  const rangeLabel = RANGES.find((r) => r.key === range)?.label || '';
 
   const doneToday = todayEntry?.habits ? Object.values(todayEntry.habits).filter(Boolean).length : 0;
 
@@ -94,6 +107,65 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Hero */}
+      <Card className="border-ink-600/60 bg-gradient-to-br from-brand-600/15 via-ink-850 to-ink-850">
+        <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+          <div className="min-w-0">
+            <div className="stat-label">Net P&amp;L · {rangeLabel}</div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span className="text-4xl font-black tracking-tight">
+                <Money value={s.net} />
+              </span>
+              {spark.length > 1 && (
+                <Sparkline data={spark} width={130} height={38} tone={s.net >= 0 ? 'profit' : 'loss'} />
+              )}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-400">
+              <span>
+                <b className={s.winRate >= 50 ? 'text-slate-200' : 'text-slate-200'}>{s.winRate.toFixed(0)}%</b> win rate
+              </span>
+              <span>
+                PF <b className="text-slate-200">{s.profitFactor === Infinity ? '∞' : s.profitFactor.toFixed(2)}</b>
+              </span>
+              <span>
+                expectancy{' '}
+                <b className={s.expectancy >= 0 ? 'text-profit' : 'text-loss'}>
+                  {s.expectancy >= 0 ? '+' : '-'}₹{Math.abs(Math.round(s.expectancy)).toLocaleString('en-IN')}
+                </b>{' '}
+                /trade
+              </span>
+              {s.currentStreak > 0 && (
+                <span className={s.currentStreakType === 'W' ? 'text-profit' : 'text-loss'}>
+                  {s.currentStreak} {s.currentStreakType === 'W' ? 'win' : 'loss'} streak
+                </span>
+              )}
+            </div>
+          </div>
+          <Link
+            to="/reports"
+            className="group flex items-center gap-4 rounded-2xl border border-ink-700 bg-ink-900/70 px-4 py-3 transition hover:border-amber-500/40"
+          >
+            <Ring
+              value={discipline.score ?? 0}
+              size={74}
+              stroke={7.5}
+              label={discipline.score ?? '—'}
+              sub="discipline"
+              tone={discipline.score >= 70 ? 'profit' : discipline.score >= 50 ? 'gold' : 'loss'}
+            />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[13px] font-bold text-slate-200">
+                <ShieldCheck size={14} className="text-amber-400" />
+                {discipline.grade}
+              </div>
+              <div className="mt-0.5 text-[11px] text-slate-500 transition group-hover:text-amber-400">
+                Weekly review →
+              </div>
+            </div>
+          </Link>
+        </div>
+      </Card>
+
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
         <Stat
@@ -101,6 +173,8 @@ export default function Dashboard() {
           value={<Money value={s.net} />}
           tone={s.net > 0 ? 'profit' : s.net < 0 ? 'loss' : 'default'}
           sub={`${s.closedTrades} closed trades`}
+          spark={spark}
+          sparkTone={s.net >= 0 ? 'profit' : 'loss'}
         />
         <Stat label="Win rate" value={`${s.winRate.toFixed(1)}%`} sub={`${s.wins}W / ${s.losses}L`} />
         <Stat
@@ -228,19 +302,47 @@ export default function Dashboard() {
       </div>
 
       {/* Last 30 days bars */}
-      <Card>
-        <SectionTitle right={<Link to="/analytics" className="flex items-center gap-1 text-[11px] text-brand-400">Full analytics <ArrowRight size={12} /></Link>}>
-          Last 30 trading days
-        </SectionTitle>
-        {last30.length ? (
-          <PnlBars
-            data={last30.map((d) => ({ ...d, label: d.date.slice(5).replace('-', '/') }))}
-            height={180}
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Card>
+          <SectionTitle right={<Link to="/analytics" className="flex items-center gap-1 text-[11px] text-brand-400">Full analytics <ArrowRight size={12} /></Link>}>
+            Last 30 trading days
+          </SectionTitle>
+          {last30.length ? (
+            <PnlBars
+              data={last30.map((d) => ({ ...d, label: d.date.slice(5).replace('-', '/') }))}
+              height={180}
+            />
+          ) : (
+            <EmptyState title="No data yet" body="Closed trades will appear here." />
+          )}
+        </Card>
+
+        {/* Month heatmap */}
+        <Card>
+          <SectionTitle
+            right={
+              <Link to="/calendar" className="flex items-center gap-1 text-[11px] text-brand-400">
+                <CalendarDays size={12} /> Open calendar <ArrowRight size={12} />
+              </Link>
+            }
+          >
+            {nowD.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+          </SectionTitle>
+          <CalendarHeatmap
+            data={monthDaily}
+            month={nowD.getMonth()}
+            year={nowD.getFullYear()}
+            today={today}
+            moodByDate={moodMap}
+            onSelect={() => navigate('/calendar')}
           />
-        ) : (
-          <EmptyState title="No data yet" body="Closed trades will appear here." />
-        )}
-      </Card>
+          <p className="mt-2 text-[11px] text-slate-500">
+            {monthDaily.length} trading days this month ·{' '}
+            {monthDaily.filter((d) => d.net > 0).length} green ·{' '}
+            {monthDaily.filter((d) => d.net < 0).length} red
+          </p>
+        </Card>
+      </div>
 
       {/* Mistakes + mood */}
       <div className="grid gap-3 md:grid-cols-2">

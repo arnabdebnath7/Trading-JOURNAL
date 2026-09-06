@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { useTrades, useEntries, MOODS, todayKey } from '../lib/hooks.js';
 import {
   summary, equityCurve, groupBy, monthlyPnl, weekdayStats, hourStats,
-  rDistribution, moodVsPnl, dailyPnl, filterTrades, journalStreak
+  rDistribution, moodVsPnl, dailyPnl, filterTrades, journalStreak,
+  ratingBreakdown, holdingBuckets, sessionHeatmap
 } from '../lib/metrics.js';
 import { Card, SectionTitle, Stat, Chip, Money, EmptyState, Field } from '../components/ui.jsx';
-import { EquityChart, PnlBars, Donut, LineSeries } from '../components/Charts.jsx';
-import { BarChart3, Lightbulb } from 'lucide-react';
+import { EquityChart, PnlBars, Donut, LineSeries, DrawdownChart } from '../components/Charts.jsx';
+import { BarChart3, Lightbulb, CalendarDays, ClipboardList } from 'lucide-react';
 
 const RANGES = [
   { key: 'week', label: '1W' },
@@ -56,6 +57,9 @@ export default function Analytics() {
   const byEmotion = useMemo(() => groupBy(trades, (t) => t.emotions), [trades]);
   const byDirection = useMemo(() => groupBy(trades, (t) => t.direction), [trades]);
   const byInstrument = useMemo(() => groupBy(trades, (t) => t.instrument), [trades]);
+  const byGrade = useMemo(() => ratingBreakdown(trades), [trades]);
+  const holdBuckets = useMemo(() => holdingBuckets(trades), [trades]);
+  const heat = useMemo(() => sessionHeatmap(trades), [trades]);
 
   const winLoss = [
     { name: 'Wins', value: s.wins, color: '#22c55e' },
@@ -120,6 +124,12 @@ export default function Analytics() {
           <Chip active={range === 'custom'} onClick={() => setRange('custom')}>
             Custom
           </Chip>
+          <Link to="/calendar" className="chip ml-1 hover:border-brand-500 hover:text-brand-400">
+            <CalendarDays size={12} /> Calendar
+          </Link>
+          <Link to="/reports" className="chip hover:border-brand-500 hover:text-brand-400">
+            <ClipboardList size={12} /> Reviews
+          </Link>
         </div>
       </div>
 
@@ -178,6 +188,63 @@ export default function Analytics() {
         )}
       </Card>
 
+      <Card>
+        <SectionTitle>Underwater — distance from peak equity</SectionTitle>
+        {curve.points.length ? (
+          <DrawdownChart data={curve.points} />
+        ) : (
+          <p className="text-[13px] text-slate-500">No closed trades in this range.</p>
+        )}
+      </Card>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <Card>
+          <SectionTitle>P&amp;L by holding time</SectionTitle>
+          <PnlBars data={holdBuckets} labelKey="label" />
+          <p className="mt-2 text-[11px] text-slate-500">
+            Are your quick trades or your patient ones actually paying you?
+          </p>
+        </Card>
+        <Card>
+          <SectionTitle>Session heatmap — weekday × entry hour</SectionTitle>
+          <div className="overflow-x-auto">
+            <div className="min-w-[380px]">
+              <div className="grid text-center text-[10px] font-semibold text-slate-500" style={{ gridTemplateColumns: '44px repeat(7, 1fr)' }}>
+                <div />
+                {heat.hours.map((h) => (
+                  <div key={h} className="pb-1">{h}h</div>
+                ))}
+              </div>
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                <div key={day} className="mb-1 grid items-center" style={{ gridTemplateColumns: '44px repeat(7, 1fr)' }}>
+                  <div className="text-[10px] font-semibold text-slate-500">{day}</div>
+                  {heat.hours.map((h) => {
+                    const c = heat.cell(i + 1, h);
+                    const t = c.trades ? Math.min(1, Math.abs(c.net) / heat.maxAbs) : 0;
+                    const bg = !c.trades
+                      ? '#131b27'
+                      : c.net >= 0
+                      ? `rgba(34,197,94,${0.15 + t * 0.75})`
+                      : `rgba(239,68,68,${0.15 + t * 0.75})`;
+                    return (
+                      <div
+                        key={h}
+                        className="mx-0.5 flex h-7 items-center justify-center rounded-md text-[9px] font-bold text-white/80"
+                        style={{ background: bg }}
+                        title={c.trades ? `${day} ${h}:00 — ${c.trades} trades, ₹${Math.round(c.net).toLocaleString('en-IN')}` : `${day} ${h}:00 — no trades`}
+                      >
+                        {c.trades > 1 ? c.trades : ''}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+          <p className="mt-2 text-[11px] text-slate-500">Number = trades taken in that slot. Colour = net P&amp;L of the slot.</p>
+        </Card>
+      </div>
+
       <div className="grid gap-3 md:grid-cols-2">
         <Card>
           <SectionTitle>Monthly P&amp;L</SectionTitle>
@@ -220,6 +287,7 @@ export default function Analytics() {
       </Card>
 
       <GroupTable title="By strategy" rows={byStrategy} />
+      <GroupTable title="By setup grade" rows={byGrade} />
       <GroupTable title="By symbol" rows={bySymbol} />
       <div className="grid gap-3 md:grid-cols-2">
         <GroupTable title="By mistake" rows={byMistake} tone="loss" />
