@@ -1,0 +1,120 @@
+=== env ===
+started: Sun Sep  6 03:40:24 UTC 2026
+java: openjdk version "21.0.12.1" 2026-08-18 LTS
+node: v22.23.2 npm: 10.9.8
+ANDROID_HOME=/usr/local/lib/android/sdk
+platforms: android-34 android-34-ext10 android-34-ext11 android-34-ext12 android-34-ext8 android-35 android-35-ext14 android-35-ext15 android-36 android-36-ext18 android-36-ext19 android-36.1 android-37.0 android-37.1 android-37.2 android-37.2-beta1 android-37.2-beta2 android-37.2-beta3 
+build-tools: 34.0.0 35.0.0 35.0.1 36.0.0 36.1.0 37.0.0 
+net dl.google: 302
+net maven: 200
+GRADLE_EXIT=0
+
+=== step results ===
+deps=success web=success capadd=success capsync=success gradle=success
+=== apks ===
+./TradeVault.apk
+./android/app/build/outputs/apk/debug/app-debug.apk
+=== dist ===
+assets
+icon-192.png
+icon-512.png
+icon.svg
+index.html
+manifest.webmanifest
+sw.js
+=== gradle log tail ===
+> Task :capacitor-cordova-android-plugins:mergeDebugJavaResource
+> Task :capacitor-haptics:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-cordova-android-plugins:syncDebugLibJars
+> Task :capacitor-cordova-android-plugins:bundleDebugAar
+> Task :capacitor-cordova-android-plugins:assembleDebug
+> Task :capacitor-haptics:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-haptics:extractDebugAnnotations
+> Task :capacitor-haptics:extractDeepLinksForAarDebug
+> Task :capacitor-haptics:mergeDebugGeneratedProguardFiles
+> Task :capacitor-haptics:mergeDebugConsumerProguardFiles
+> Task :capacitor-haptics:prepareDebugArtProfile
+> Task :capacitor-haptics:prepareLintJarForPublish
+> Task :capacitor-haptics:mergeDebugJavaResource
+> Task :capacitor-keyboard:checkDebugAarMetadata
+> Task :capacitor-haptics:syncDebugLibJars
+> Task :capacitor-haptics:bundleDebugAar
+> Task :capacitor-haptics:assembleDebug
+> Task :capacitor-keyboard:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-keyboard:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-keyboard:extractDebugAnnotations
+> Task :capacitor-keyboard:extractDeepLinksForAarDebug
+> Task :capacitor-keyboard:mergeDebugGeneratedProguardFiles
+> Task :capacitor-keyboard:mergeDebugConsumerProguardFiles
+> Task :capacitor-keyboard:prepareDebugArtProfile
+> Task :capacitor-keyboard:prepareLintJarForPublish
+> Task :capacitor-keyboard:mergeDebugJavaResource
+> Task :capacitor-network:checkDebugAarMetadata
+> Task :capacitor-keyboard:syncDebugLibJars
+> Task :capacitor-keyboard:bundleDebugAar
+> Task :capacitor-keyboard:assembleDebug
+> Task :capacitor-network:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-network:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-network:extractDebugAnnotations
+> Task :capacitor-network:extractDeepLinksForAarDebug
+> Task :capacitor-network:mergeDebugGeneratedProguardFiles
+> Task :capacitor-network:mergeDebugConsumerProguardFiles
+> Task :capacitor-network:prepareDebugArtProfile
+> Task :capacitor-network:prepareLintJarForPublish
+> Task :capacitor-network:mergeDebugJavaResource
+> Task :capacitor-status-bar:checkDebugAarMetadata
+> Task :capacitor-network:syncDebugLibJars
+> Task :capacitor-network:bundleDebugAar
+> Task :capacitor-network:assembleDebug
+> Task :capacitor-status-bar:stripDebugDebugSymbols NO-SOURCE
+> Task :capacitor-status-bar:copyDebugJniLibsProjectAndLocalJars
+> Task :capacitor-status-bar:extractDebugAnnotations
+> Task :capacitor-status-bar:extractDeepLinksForAarDebug
+> Task :capacitor-status-bar:mergeDebugGeneratedProguardFiles
+> Task :capacitor-status-bar:mergeDebugConsumerProguardFiles
+> Task :capacitor-status-bar:prepareDebugArtProfile
+> Task :capacitor-status-bar:prepareLintJarForPublish
+> Task :capacitor-status-bar:mergeDebugJavaResource
+> Task :capacitor-status-bar:syncDebugLibJars
+> Task :capacitor-status-bar:bundleDebugAar
+> Task :capacitor-status-bar:assembleDebug
+
+[Incubating] Problems report is available at: file:///home/runner/work/Trading-JOURNAL/Trading-JOURNAL/android/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1m 35s
+243 actionable tasks: 243 executed
+=== web build log tail ===
+
+> tradevault@2.0.0 build
+> npm -w web run build
+
+
+> web@2.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 2422 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  1.00 kB[22m[1m[22m[2m │ gzip:   0.50 kB[22m
+[2mdist/[22m[2massets/[22m[35mindex-CYR6Qm-g.css  [39m[1m[2m 37.27 kB[22m[1m[22m[2m │ gzip:   6.73 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-Dg9qsKeW.js   [39m[1m[2m  0.32 kB[22m[1m[22m[2m │ gzip:   0.24 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-Bf0Chgi9.js   [39m[1m[2m  0.34 kB[22m[1m[22m[2m │ gzip:   0.24 kB[22m
+[2mdist/[22m[2massets/[22m[36mweb-BB9ybuzB.js     [39m[1m[2m  0.84 kB[22m[1m[22m[2m │ gzip:   0.40 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-jjAWVaPB.js   [39m[1m[2m  8.27 kB[22m[1m[22m[2m │ gzip:   3.38 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-MdWjuvfG.js   [39m[1m[2m886.93 kB[22m[1m[22m[2m │ gzip: 254.33 kB[22m
+[32m✓ built in 4.21s[39m
+=== cap sync log tail ===
+✔ Copying web assets from dist to android/app/src/main/assets/public in 5.85ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 493.58μs
+✔ copy android in 13.94ms
+✔ Updating Android plugins in 1.44ms
+[info] Found 5 Capacitor plugins for android:
+       @capacitor/app@8.1.1
+       @capacitor/haptics@8.0.2
+       @capacitor/keyboard@8.0.5
+       @capacitor/network@8.0.1
+       @capacitor/status-bar@8.0.3
+✔ update android in 28.89ms
+[info] Sync finished in 0.059s

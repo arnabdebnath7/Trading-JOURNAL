@@ -1,0 +1,21 @@
+
+> tradevault@2.0.0 build
+> npm -w web run build
+
+
+> web@2.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 2422 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  1.00 kB[22m[1m[22m[2m │ gzip:   0.50 kB[22m
+[2mdist/[22m[2massets/[22m[35mindex-CYR6Qm-g.css  [39m[1m[2m 37.27 kB[22m[1m[22m[2m │ gzip:   6.73 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-Dg9qsKeW.js   [39m[1m[2m  0.32 kB[22m[1m[22m[2m │ gzip:   0.24 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-Bf0Chgi9.js   [39m[1m[2m  0.34 kB[22m[1m[22m[2m │ gzip:   0.24 kB[22m
+[2mdist/[22m[2massets/[22m[36mweb-BB9ybuzB.js     [39m[1m[2m  0.84 kB[22m[1m[22m[2m │ gzip:   0.40 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-jjAWVaPB.js   [39m[1m[2m  8.27 kB[22m[1m[22m[2m │ gzip:   3.38 kB[22m
+[2mdist/[22m[2massets/[22m[36mindex-MdWjuvfG.js   [39m[1m[2m886.93 kB[22m[1m[22m[2m │ gzip: 254.33 kB[22m
+[32m✓ built in 4.21s[39m
