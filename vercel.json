@@ -1,8 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
-  "installCommand": "echo skip-root-install",
-  "buildCommand": "cd web && npm install --include=dev --ignore-scripts && npm run build",
-  "outputDirectory": "web/dist",
-  "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }]
-}
