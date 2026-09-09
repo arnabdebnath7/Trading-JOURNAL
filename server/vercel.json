@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "echo root=$(pwd); echo '--- root ---'; ls -la; echo '--- parent ---'; ls -la .. || true; echo '--- server ---'; ls -la .",
-  "buildCommand": "node -e \"console.log('vercel server-root diagnostic')\"",
-  "outputDirectory": "."
+  "installCommand": "echo skip-server-install",
+  "buildCommand": "cd ../web && npm install --include=dev --ignore-scripts && npm run build -- --outDir ../server/dist",
+  "outputDirectory": "dist",
+  "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }]
 }
